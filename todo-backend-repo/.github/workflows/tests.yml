@@ -1,0 +1,49 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Run Unit Tests
+      run: dotnet test Tests/Controllers/ Tests/Services/ --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+      
+    - name: Run Integration Tests
+      run: dotnet test Tests/Integration/ --no-build --configuration Release --verbosity normal
+      
+    - name: Generate Test Report
+      run: dotnet test --logger "trx;LogFileName=TestResults.trx" --collect:"XPlat Code Coverage" --results-directory:"./TestResults"
+      
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: TestResults/
+        
+    - name: Upload Coverage Reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        directory: ./TestResults/
+        flags: backend
+        name: backend-coverage

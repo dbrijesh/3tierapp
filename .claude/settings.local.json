@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(chmod:*)",
+      "Bash(mv:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx ng build:*)",
+      "Bash(npx ng:*)",
+      "Bash(npx karma start:*)",
+      "Bash(find:*)",
+      "Bash(./run-tests.sh:*)",
+      "Bash(echo)"
+    ],
+    "deny": []
+  }
+}

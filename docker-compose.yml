@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  todo-backend:
+    build:
+      context: ./todo-backend-repo
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - AuthSettings__Cognito__Region=${COGNITO_REGION:-us-east-1}
+      - AuthSettings__Cognito__UserPoolId=${COGNITO_USER_POOL_ID:-us-east-1_XXXXXXXXX}
+      - AuthSettings__Cognito__ClientId=${COGNITO_CLIENT_ID:-your-cognito-client-id}
+      - AuthSettings__AzureAD__TenantId=${AZURE_TENANT_ID:-your-tenant-id}
+      - AuthSettings__AzureAD__ClientId=${AZURE_CLIENT_ID:-your-azure-client-id}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - todo-network
+
+  todo-frontend:
+    build:
+      context: ./todo-frontend-repo
+      dockerfile: Dockerfile
+    ports:
+      - "4200:8080"
+    depends_on:
+      todo-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
+
+# For development with live reloading (alternative services)
+# Uncomment these services for development mode
+#  todo-backend-dev:
+#    build:
+#      context: ./todo-backend-repo
+#      dockerfile: Dockerfile.dev
+#    ports:
+#      - "5000:5000"
+#    volumes:
+#      - ./todo-backend-repo:/app
+#      - /app/bin
+#      - /app/obj
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - ASPNETCORE_URLS=http://*:5000
+#    networks:
+#      - todo-network
+#
+#  todo-frontend-dev:
+#    build:
+#      context: ./todo-frontend-repo
+#      dockerfile: Dockerfile.dev
+#    ports:
+#      - "4200:4200"
+#    volumes:
+#      - ./todo-frontend-repo:/app
+#      - /app/node_modules
+#    environment:
+#      - NODE_ENV=development
+#    networks:
+#      - todo-network
